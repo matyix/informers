@@ -1,0 +1,12 @@
+_state*
+.idea*
+.DS_Store
+bin/*
+.idea/
+informers.iml
+.informers
+informers
+statestore/*
+conf/config.toml
+*.swp
+

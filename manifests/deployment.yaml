@@ -1,0 +1,20 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: informers
+  labels:
+    app: informers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: informers
+  template:
+    metadata:
+      labels:
+        app: informers
+    spec:
+      containers:
+      - name: informers-ctr
+        image: matyix/informers:v0.1.0
+        imagePullPolisy: Always

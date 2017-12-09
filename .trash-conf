@@ -1,0 +1,22 @@
+imports:
+  github.com/dustin/go-humanize:
+    package: github.com/dustin/go-humanize
+    version: bb3d318650d48840a39aa21a027c6630e198e626
+    update: false
+    options: {}
+  github.com/sirupsen/logrus:
+    package: github.com/sirupsen/logrus
+    version: v0.10.0
+    update: false
+    options: {}
+  github.com/urfave/cli:
+    package: github.com/urfave/cli
+    version: v1.18.0
+    update: false
+    options: {}
+  k8s.io/client-go:
+    package: k8s.io/client-go
+    version: v4.0.0
+    update: false
+    options:
+      transitive: true
