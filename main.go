@@ -3,8 +3,7 @@ package main
 import (
 	"os"
 	"time"
-
-	"github.com/dustin/go-humanize"
+	
 	"github.com/urfave/cli"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -114,7 +113,7 @@ func watchPods() {
 func handleNodeAdd(obj interface{}) {
 	node := obj.(*api.Node)
 	logrus.Infof("Node [%s] is added; checking resources...", node.Name)
-	logrus.Infof("Node [%s] memory pressure stata is [%v]" , node.Name, isNodeUnderPressure(node))
+	logrus.Infof("Node [%s] memory pressure state is [%v]" , node.Name, isNodeUnderPressure(node))
 }
 
 func handleNodeUpdate(old, current interface{}) {
@@ -169,11 +168,11 @@ func isNodeUnderPressure(node *api.Node) bool {
 
 func podCreated(obj interface{}) {
 	pod := obj.(*api.Pod)
-	logrus.Infof("Pod created: "+pod.ObjectMeta.Name)
+	logrus.Infof("Pod with [%s] name created on node [%s]: ", pod.ObjectMeta.Name, pod.Spec.NodeName )
 }
 func podDeleted(obj interface{}) {
 	pod := obj.(*api.Pod)
-	logrus.Infof("Pod deleted: "+pod.ObjectMeta.Name)
+	logrus.Infof("Pod with [%s] name deleted from node [%s]: ", pod.ObjectMeta.Name, pod.Spec.NodeName )
 }
 
 func getClient(pathToCfg string) (*kubernetes.Clientset, error) {
@@ -191,24 +190,4 @@ func getClient(pathToCfg string) (*kubernetes.Clientset, error) {
 		return nil, err
 	}
 	return kubernetes.NewForConfig(config)
-}
-
-func checkImageStorage(node *api.Node) {
-	var storage int64
-	for _, image := range node.Status.Images {
-		storage = storage + image.SizeBytes
-	}
-	changed := true
-	if _, ok := imageCapacity[node.Name]; ok {
-		if imageCapacity[node.Name] == storage {
-			changed = false
-		}
-	}
-	if changed {
-		logrus.Infof("Node [%s] storage occupied by images changed. Old value: [%v], new value: [%v]", node.Name,
-			humanize.Bytes(uint64(imageCapacity[node.Name])), humanize.Bytes(uint64(storage)))
-		imageCapacity[node.Name] = storage
-	} else {
-		logrus.Infof("No changes in node [%s] storage occupied by images", node.Name)
-	}
 }
