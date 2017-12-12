@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 	"time"
-	
+
 	"github.com/urfave/cli"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -22,7 +22,6 @@ var clientset *kubernetes.Clientset
 
 var controller cache.Controller
 var store cache.Store
-var imageCapacity map[string]int64
 
 func main() {
 	app := cli.NewApp()
