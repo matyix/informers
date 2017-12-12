@@ -4,6 +4,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -12,8 +13,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
-	"github.com/sirupsen/logrus"
-
 )
 
 var VERSION = "v0.1.0"
@@ -104,7 +103,6 @@ func watchPods() {
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    podCreated,
 		DeleteFunc: podDeleted,
-
 	})
 
 }
@@ -112,7 +110,7 @@ func watchPods() {
 func handleNodeAdd(obj interface{}) {
 	node := obj.(*api.Node)
 	logrus.Infof("Node [%s] is added; checking resources...", node.Name)
-	logrus.Infof("Node [%s] memory pressure state is [%v]" , node.Name, isNodeUnderPressure(node))
+	logrus.Infof("Node [%s] memory pressure state is [%v]", node.Name, isNodeUnderPressure(node))
 }
 
 func handleNodeUpdate(old, current interface{}) {
@@ -123,7 +121,7 @@ func handleNodeUpdate(old, current interface{}) {
 	}
 
 	node := current.(*api.Node)
-	logrus.Infof("Node [%s] memory pressure state is [%v]" , node.Name, isNodeUnderPressure(node))
+	logrus.Infof("Node [%s] memory pressure state is [%v]", node.Name, isNodeUnderPressure(node))
 }
 
 func pollNodes() error {
@@ -144,13 +142,12 @@ func pollNodes() error {
 		}
 		for _, node := range nodes.Items {
 			//checkImageStorage(&node)
-			logrus.Infof("Node [%s] memory pressure state is [%v]" , node.Name, isNodeUnderPressure(&node))
+			logrus.Infof("Node [%s] memory pressure state is [%v]", node.Name, isNodeUnderPressure(&node))
 
 		}
 		time.Sleep(10 * time.Second)
 	}
 }
-
 
 func isNodeUnderPressure(node *api.Node) bool {
 	memoryPressure := false
@@ -167,11 +164,11 @@ func isNodeUnderPressure(node *api.Node) bool {
 
 func podCreated(obj interface{}) {
 	pod := obj.(*api.Pod)
-	logrus.Infof("Pod with [%s] name created on node [%s]: ", pod.ObjectMeta.Name, pod.Spec.NodeName )
+	logrus.Infof("Pod with [%s] name created on node [%s]: ", pod.ObjectMeta.Name, pod.Spec.NodeName)
 }
 func podDeleted(obj interface{}) {
 	pod := obj.(*api.Pod)
-	logrus.Infof("Pod with [%s] name deleted from node [%s]: ", pod.ObjectMeta.Name, pod.Spec.NodeName )
+	logrus.Infof("Pod with [%s] name deleted from node [%s]: ", pod.ObjectMeta.Name, pod.Spec.NodeName)
 }
 
 func getClient(pathToCfg string) (*kubernetes.Clientset, error) {
