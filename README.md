@@ -2,5 +2,5 @@
 
 `./informers --config ~/.kube/config`
 
-wercker test
+
 
