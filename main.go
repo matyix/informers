@@ -10,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	api "k8s.io/client-go/pkg/api/v1"
+	batchv1 "k8s.io/client-go/pkg/apis/batch/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
@@ -33,7 +34,7 @@ func main() {
 
 	app.Action = func(c *cli.Context) error {
 		var err error
-		clientset, err = getClient(c.String("config"))
+		clientset, err = getClient(c.String("/home/matyix/.kube/config"))
 		if err != nil {
 			logrus.Error(err)
 			return err
@@ -48,6 +49,89 @@ func main() {
 	app.Run(os.Args)
 }
 
+func listJobs() {
+
+	batchClient := clientset.BatchV1Client
+	jobsClient := batchClient.Jobs("default")
+
+	jobsList, _ := jobsClient.List(v1.ListOptions{})
+
+	for i, job := range jobsList.Items {
+		logrus.Infof("Job %d: %s\n", i, job.Name)
+	}
+
+}
+
+func createJobs() {
+
+	falseVal := false
+
+	batchClient := clientset.BatchV1Client
+	jobsClient := batchClient.Jobs("default")
+
+	batchJob := &batchv1.Job{
+		TypeMeta: v1.TypeMeta{
+			Kind:       "Job",
+			APIVersion: "v1",
+		},
+		ObjectMeta: v1.ObjectMeta{
+			Name:   "testjob",
+			Labels: make(map[string]string),
+		},
+		Spec: batchv1.JobSpec{
+			// Optional: Parallelism:,
+			// Optional: Completions:,
+			// Optional: ActiveDeadlineSeconds:,
+			// Optional: Selector:,
+			// Optional: ManualSelector:,
+			Template: api.PodTemplateSpec{
+				ObjectMeta: v1.ObjectMeta{
+					Name:   "testpod",
+					Labels: make(map[string]string),
+				},
+				Spec: api.PodSpec{
+					InitContainers: []api.Container{}, // Doesn't seem obligatory(?)...
+					Containers: []api.Container{
+						{
+							Name:    "testing",
+							Image:   "nginx",
+							Command: []string{"sleep", "10"},
+							SecurityContext: &api.SecurityContext{
+								Privileged: &falseVal,
+							},
+							ImagePullPolicy: api.PullPolicy(api.PullIfNotPresent),
+							Env:             []api.EnvVar{},
+							VolumeMounts:    []api.VolumeMount{},
+						},
+					},
+					RestartPolicy:    api.RestartPolicyOnFailure,
+					Volumes:          []api.Volume{},
+					ImagePullSecrets: []api.LocalObjectReference{},
+				},
+			},
+		},
+		// Optional, not used by pach: JobStatus:,
+	}
+
+	newJob, _ := jobsClient.Create(batchJob)
+
+	logrus.Infof("Job %v", newJob.Name)
+
+}
+
+func deleteJob(name string) {
+
+	batchClient := clientset.BatchV1Client
+	jobsClient := batchClient.Jobs("default")
+
+	deleteOptions := v1.DeleteOptions{}
+
+	gracePeriodSeconds := int64(10)
+	deleteOptions.GracePeriodSeconds = &gracePeriodSeconds
+
+	jobsClient.Delete(name, &deleteOptions)
+
+}
 func watchNodes() {
 	watchList := cache.NewListWatchFromClient(clientset.CoreV1().RESTClient(), "nodes", v1.NamespaceAll,
 		fields.Everything())
