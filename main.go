@@ -269,5 +269,6 @@ func getClient(pathToCfg string) (*kubernetes.Clientset, error) {
 	if err != nil {
 		return nil, err
 	}
-	return kubernetes.NewForConfig(config)
+	//return kubernetes.NewForConfig(config)
+	return kubernetes.NewForConfigOrDie(config), nil
 }
